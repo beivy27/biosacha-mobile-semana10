@@ -1,50 +1,73 @@
-# Welcome to your Expo app 👋
+# BioSacha Mobile — Semana 9
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Proyecto
+Aplicación móvil multiplataforma del proyecto integrador BioSacha, desarrollada con React Native y Expo.
 
-## Get started
+## Entorno utilizado
+- Framework: React Native + Expo
+- Expo SDK: 54
+- Node.js: 24.18.0
+- npm: 11.16.0
+- Git: 2.52.0
+- Dispositivo de prueba: iPhone físico
+- Backend: Node.js + Express
+- ORM: Prisma
+- Base de datos: PostgreSQL 16
 
-1. Install dependencies
+## Verificación del entorno
+Se ejecutó:
 
-   ```bash
-   npm install
-   ```
+npx expo-doctor
 
-2. Start the app
+Resultado:
 
-   ```bash
-   npx expo start
-   ```
+18/18 checks passed. No issues detected!
 
-In the output, you'll find options to open the app in a
+## Instalación
+Desde la carpeta del proyecto:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+npm install
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Ejecución
+Para iniciar el entorno:
 
-## Get a fresh project
+npx expo start --clear
 
-When you're ready, run:
+La aplicación puede ejecutarse con Expo Go mediante el código QR generado por Metro Bundler.
 
-```bash
-npm run reset-project
-```
+## Backend BioSacha
+La aplicación consume el backend propio del proyecto mediante:
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+EXPO_PUBLIC_API_URL=http://IP_LOCAL_DEL_BACKEND:3000
 
-## Learn more
+Endpoint utilizado:
 
-To learn more about developing your project with Expo, look at the following resources:
+GET /api/registros
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Conectividad
+Durante las pruebas locales se utilizó la IP del equipo de desarrollo y el puerto 3000.
 
-## Join the community
+La aplicación móvil consulta el endpoint del backend y recibe registros almacenados de forma persistente en PostgreSQL.
 
-Join our community of developers creating universal apps.
+## Base de datos real
+PostgreSQL contiene las tablas:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- usuarios
+- plantas
+- comunidades
+- registros_botanicos
+- lotes_sincronizacion
+- _prisma_migrations
+
+La aplicación mostró correctamente un registro real de Guayusa obtenido mediante:
+
+iPhone -> Expo/React Native -> API BioSacha -> Prisma -> PostgreSQL
+
+## Recarga en caliente
+Se modificó el texto de la pantalla durante la ejecución y el cambio apareció automáticamente en el dispositivo físico sin reinstalar la aplicación.
+
+## Destino de ejecución
+Se utilizó un iPhone físico porque permite verificar el comportamiento de la aplicación en un dispositivo real y demostrar la conectividad con el backend dentro de la red local.
+
+## Consideraciones de desarrollo
+La dirección IP utilizada corresponde exclusivamente al entorno local de desarrollo y debe sustituirse según la red del equipo donde se ejecute el backend.
