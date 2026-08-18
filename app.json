@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "BioSacha-Mobile-Semana9",
-    "slug": "BioSacha-Mobile-Semana9",
+    "name": "BioSacha-Mobile-Semana10",
+    "slug": "biosacha-mobile-semana10",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "biosachamobilesemana9",
     "userInterfaceStyle": "automatic",

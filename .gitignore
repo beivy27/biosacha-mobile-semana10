@@ -45,3 +45,6 @@ app-example
 # Variables locales
 .env
 .env.local
+
+# Respaldos locales Semana 10
+backups/

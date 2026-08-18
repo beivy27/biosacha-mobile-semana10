@@ -1,184 +1,335 @@
-import { useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
 import {
-  ActivityIndicator,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 
-type Registro = {
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import {
+  BotonPrimario,
+  TarjetaRegistroBotanico,
+  VistaEstado,
+} from "../components";
+
+import { theme } from "../theme";
+
+type RegistroBotanico = {
   id_registro: number;
   habitat: string;
   estado_validacion: string;
+
   planta: {
     nombre_cientifico: string;
     nombre_local_principal: string;
   };
+
   comunidad: {
     nombre: string;
     provincia: string;
   };
+
   usuario: {
     nombre: string;
     rol: string;
   };
 };
 
+type RespuestaRegistros = {
+  exito: boolean;
+  datos: RegistroBotanico[];
+  mensaje?: string;
+};
+
 export default function Index() {
-  const [registros, setRegistros] = useState<Registro[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
+  const { width } = useWindowDimensions();
 
-  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+  const esAnchoAmplio =
+    width >= theme.breakpoints.wide;
 
-  useEffect(() => {
-    async function cargarRegistros() {
+  const [registros, setRegistros] =
+    useState<RegistroBotanico[]>([]);
+
+  const [cargando, setCargando] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const API_URL =
+    process.env.EXPO_PUBLIC_API_URL;
+
+  const cargarRegistros =
+    useCallback(async () => {
+      setCargando(true);
+      setError("");
+
       try {
-        const respuesta = await fetch(`${API_URL}/api/registros`);
-        const json = await respuesta.json();
+        if (!API_URL) {
+          throw new Error("CONFIGURACION_API");
+        }
 
-        if (!respuesta.ok || !json.exito) {
-          throw new Error("No se pudo consultar BioSacha API");
+        const respuesta = await fetch(
+          `${API_URL}/api/registros`
+        );
+
+        if (respuesta.status === 401) {
+          throw new Error("SESION_EXPIRADA");
+        }
+
+        if (respuesta.status === 403) {
+          throw new Error("SIN_PERMISOS");
+        }
+
+        if (!respuesta.ok) {
+          throw new Error("ERROR_SERVIDOR");
+        }
+
+        const json =
+          (await respuesta.json()) as RespuestaRegistros;
+
+        if (
+          !json.exito ||
+          !Array.isArray(json.datos)
+        ) {
+          throw new Error("RESPUESTA_INVALIDA");
         }
 
         setRegistros(json.datos);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Error de conexión");
+        const codigo =
+          e instanceof Error
+            ? e.message
+            : "ERROR_CONEXION";
+
+        const mensajes:
+          Record<string, string> = {
+          CONFIGURACION_API:
+            "La aplicación no tiene configurada la dirección del servicio.",
+          SESION_EXPIRADA:
+            "La sesión ha expirado. Inicie sesión nuevamente.",
+          SIN_PERMISOS:
+            "No dispone de permisos para consultar los registros.",
+          ERROR_SERVIDOR:
+            "El servicio no está disponible temporalmente.",
+          RESPUESTA_INVALIDA:
+            "La información recibida no tiene el formato esperado.",
+          ERROR_CONEXION:
+            "No fue posible conectar con BioSacha.",
+        };
+
+        setError(
+          mensajes[codigo] ??
+            mensajes.ERROR_CONEXION
+        );
       } finally {
         setCargando(false);
       }
-    }
+    }, [API_URL]);
 
+  useEffect(() => {
     cargarRegistros();
-  }, []);
+  }, [cargarRegistros]);
 
   return (
-    <SafeAreaView style={styles.contenedor}>
-      <ScrollView contentContainerStyle={styles.contenido}>
-        <Text style={styles.titulo}>BioSacha</Text>
-        <Text style={styles.subtitulo}>
-          Registros botánicos BioSacha • Semana 9
-        </Text>
+    <SafeAreaView
+      style={styles.pantalla}
+      edges={["top", "left", "right"]}
+    >
+      <ScrollView
+        contentContainerStyle={[
+          styles.contenido,
+          esAnchoAmplio &&
+            styles.contenidoAmplio,
+        ]}
+      >
+        <View
+          style={[
+            styles.distribucion,
+            esAnchoAmplio &&
+              styles.distribucionAmplia,
+          ]}
+        >
+          <View
+            style={[
+              styles.panelIntroduccion,
+              esAnchoAmplio &&
+                styles.panelIntroduccionAmplio,
+            ]}
+          >
+            <View style={styles.encabezado}>
+              <Text style={styles.titulo}>
+                BioSacha
+              </Text>
 
-        <View style={styles.estado}>
-          <Text style={styles.estadoTexto}>
-            API: {API_URL}
-          </Text>
-        </View>
+              <Text style={styles.subtitulo}>
+                Herbario digital y sabiduría ancestral
+              </Text>
 
-        {cargando && (
-          <ActivityIndicator size="large" style={styles.cargando} />
-        )}
+              <Text style={styles.descripcion}>
+                Registros botánicos almacenados
+                en la API del proyecto.
+              </Text>
+            </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        {registros.map((registro) => (
-          <View key={registro.id_registro} style={styles.tarjeta}>
-            <Text style={styles.nombre}>
-              {registro.planta.nombre_local_principal}
-            </Text>
-
-            <Text style={styles.cientifico}>
-              {registro.planta.nombre_cientifico}
-            </Text>
-
-            <Text style={styles.texto}>
-              Comunidad: {registro.comunidad.nombre}
-            </Text>
-
-            <Text style={styles.texto}>
-              Provincia: {registro.comunidad.provincia}
-            </Text>
-
-            <Text style={styles.texto}>
-              Hábitat: {registro.habitat}
-            </Text>
-
-            <Text style={styles.texto}>
-              Registrado por: {registro.usuario.nombre}
-            </Text>
-
-            <Text style={styles.validado}>
-              Estado: {registro.estado_validacion}
-            </Text>
+            {!cargando && !error ? (
+              <BotonPrimario
+                texto="Actualizar registros"
+                onPress={cargarRegistros}
+                accessibilityLabel="Actualizar registros botánicos"
+              />
+            ) : null}
           </View>
-        ))}
 
-        {!cargando && !error && registros.length === 0 && (
-          <Text style={styles.texto}>No existen registros.</Text>
-        )}
+          <View
+            style={[
+              styles.panelDatos,
+              esAnchoAmplio &&
+                styles.panelDatosAmplio,
+            ]}
+          >
+            {cargando ? (
+              <VistaEstado
+                tipo="cargando"
+                mensaje="Consultando los registros botánicos."
+              />
+            ) : null}
+
+            {!cargando && error ? (
+              <VistaEstado
+                tipo="error"
+                mensaje={error}
+                onReintentar={cargarRegistros}
+              />
+            ) : null}
+
+            {!cargando &&
+            !error &&
+            registros.length === 0 ? (
+              <VistaEstado
+                tipo="vacio"
+                mensaje="Todavía no existen registros botánicos para mostrar."
+              />
+            ) : null}
+
+            {!cargando &&
+            !error &&
+            registros.length > 0 ? (
+              <View style={styles.lista}>
+                <Text style={styles.seccionTitulo}>
+                  Registros botánicos
+                </Text>
+
+                {registros.map((registro) => (
+                  <TarjetaRegistroBotanico
+                    key={registro.id_registro}
+                    nombreComun={
+                      registro.planta
+                        .nombre_local_principal
+                    }
+                    nombreCientifico={
+                      registro.planta
+                        .nombre_cientifico
+                    }
+                    comunidad={
+                      registro.comunidad.nombre
+                    }
+                    estadoValidacion={
+                      registro.estado_validacion
+                    }
+                  />
+                ))}
+              </View>
+            ) : null}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedor: {
+  pantalla: {
     flex: 1,
-    backgroundColor: "#F2F7F3",
+    backgroundColor:
+      theme.colors.background,
   },
+
   contenido: {
-    padding: 24,
-    paddingTop: 60,
+    flexGrow: 1,
+    paddingHorizontal:
+      theme.spacing.md,
+    paddingVertical:
+      theme.spacing.lg,
   },
+
+  contenidoAmplio: {
+    paddingHorizontal:
+      theme.spacing.xl,
+  },
+
+  distribucion: {
+    gap: theme.spacing.lg,
+  },
+
+  distribucionAmplia: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  panelIntroduccion: {
+    gap: theme.spacing.lg,
+  },
+
+  panelIntroduccionAmplio: {
+    flex: 1,
+  },
+
+  panelDatos: {
+    gap: theme.spacing.md,
+  },
+
+  panelDatosAmplio: {
+    flex: 2,
+  },
+
+  encabezado: {
+    gap: theme.spacing.sm,
+  },
+
   titulo: {
-    fontSize: 34,
-    fontWeight: "700",
-    color: "#174D32",
+    ...theme.typography.titleLarge,
+    color:
+      theme.colors.actionPrimary,
   },
+
   subtitulo: {
-    fontSize: 17,
-    marginTop: 6,
-    marginBottom: 20,
-    color: "#52635A",
+    ...theme.typography.subtitle,
+    color:
+      theme.colors.textPrimary,
   },
-  estado: {
-    backgroundColor: "#E4EFE7",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 20,
+
+  descripcion: {
+    ...theme.typography.body,
+    color:
+      theme.colors.textSecondary,
   },
-  estadoTexto: {
-    color: "#174D32",
-    fontSize: 12,
+
+  lista: {
+    gap: theme.spacing.md,
   },
-  cargando: {
-    marginTop: 40,
-  },
-  tarjeta: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 18,
-  },
-  nombre: {
-    fontSize: 25,
-    fontWeight: "700",
-    color: "#174D32",
-  },
-  cientifico: {
-    fontSize: 16,
-    fontStyle: "italic",
-    marginTop: 4,
-    marginBottom: 14,
-    color: "#617067",
-  },
-  texto: {
-    fontSize: 15,
-    marginBottom: 7,
-    color: "#29352F",
-  },
-  validado: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginTop: 8,
-    color: "#237A45",
-  },
-  error: {
-    color: "#B42318",
-    marginTop: 20,
-    fontSize: 16,
+
+  seccionTitulo: {
+    ...theme.typography.title,
+    color:
+      theme.colors.textPrimary,
   },
 });
