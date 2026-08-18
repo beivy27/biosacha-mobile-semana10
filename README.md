@@ -1,73 +1,87 @@
-# BioSacha Mobile — Semana 9
+# BioSacha Mobile — Semana 10
 
 ## Proyecto
-Aplicación móvil multiplataforma del proyecto integrador BioSacha, desarrollada con React Native y Expo.
+Aplicación móvil multiplataforma del proyecto integrador BioSacha, desarrollada con React Native, Expo y TypeScript.
 
-## Entorno utilizado
-- Framework: React Native + Expo
-- Expo SDK: 54
-- Node.js: 24.18.0
-- npm: 11.16.0
-- Git: 2.52.0
-- Dispositivo de prueba: iPhone físico
-- Backend: Node.js + Express
-- ORM: Prisma
-- Base de datos: PostgreSQL 16
+En la Semana 10 se implementó un sistema de diseño basado en tokens, un catálogo de componentes reutilizables, tratamiento explícito de estados, accesibilidad y comportamiento adaptativo sobre una pantalla real conectada a la API BioSacha.
 
-## Verificación del entorno
+## Sistema de diseño
+El tema centralizado se encuentra en:
+
+- `theme/tokens.ts`
+- `theme/index.ts`
+
+Incluye colores, tipografía, espaciado, radios, tamaños, estados visuales, breakpoints y tokens de componentes.
+
+## Componentes reutilizables
+Se implementaron:
+
+- `BotonPrimario`
+- `CampoTexto`
+- `VistaEstado`
+- `TarjetaRegistroBotanico`
+
+Los componentes reciben información mediante props y comunican acciones mediante callbacks, sin consultar directamente el backend ni depender de rutas de navegación.
+
+## Estados de interfaz
+`VistaEstado` implementa:
+
+- cargando
+- vacío
+- error
+- reintento
+
+## Pantalla real
+La pantalla principal consume:
+
+`GET /api/registros`
+
+Flujo comprobado:
+
+iPhone / Expo → API BioSacha → Prisma → PostgreSQL
+
+Registro demostrado:
+
+- Nombre común: Guayusa
+- Nombre científico: Ilex guayusa
+- Comunidad: Comunidad Amazónica BioSacha
+- Estado: aprobado
+
+## Accesibilidad
+Se verificaron:
+
+- contraste WCAG AA
+- área táctil mínima de 48 px
+- etiquetas y roles semánticos
+- estados accesibles
+- fuente del sistema ampliada
+
+## Comportamiento adaptativo
+La aplicación utiliza `useWindowDimensions` y un breakpoint centralizado:
+
+- ancho reducido: una columna
+- ancho amplio: dos columnas
+
+## Verificación
 Se ejecutó:
 
-npx expo-doctor
+`npx tsc --noEmit`
 
-Resultado:
-
-18/18 checks passed. No issues detected!
-
-## Instalación
-Desde la carpeta del proyecto:
-
-npm install
+Resultado: sin errores.
 
 ## Ejecución
-Para iniciar el entorno:
+Instalar dependencias:
 
-npx expo start --clear
+`npm install`
 
-La aplicación puede ejecutarse con Expo Go mediante el código QR generado por Metro Bundler.
+Ejecutar:
 
-## Backend BioSacha
-La aplicación consume el backend propio del proyecto mediante:
+`npx expo start --clear`
 
-EXPO_PUBLIC_API_URL=http://IP_LOCAL_DEL_BACKEND:3000
+## Seguridad
+No se publican:
 
-Endpoint utilizado:
+- `.env`
+- `backups/`
 
-GET /api/registros
-
-## Conectividad
-Durante las pruebas locales se utilizó la IP del equipo de desarrollo y el puerto 3000.
-
-La aplicación móvil consulta el endpoint del backend y recibe registros almacenados de forma persistente en PostgreSQL.
-
-## Base de datos real
-PostgreSQL contiene las tablas:
-
-- usuarios
-- plantas
-- comunidades
-- registros_botanicos
-- lotes_sincronizacion
-- _prisma_migrations
-
-La aplicación mostró correctamente un registro real de Guayusa obtenido mediante:
-
-iPhone -> Expo/React Native -> API BioSacha -> Prisma -> PostgreSQL
-
-## Recarga en caliente
-Se modificó el texto de la pantalla durante la ejecución y el cambio apareció automáticamente en el dispositivo físico sin reinstalar la aplicación.
-
-## Destino de ejecución
-Se utilizó un iPhone físico porque permite verificar el comportamiento de la aplicación en un dispositivo real y demostrar la conectividad con el backend dentro de la red local.
-
-## Consideraciones de desarrollo
-La dirección IP utilizada corresponde exclusivamente al entorno local de desarrollo y debe sustituirse según la red del equipo donde se ejecute el backend.
+La configuración de ejemplo se proporciona mediante `.env.example`.
